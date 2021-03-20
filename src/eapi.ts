@@ -13,7 +13,7 @@ const aes = new AES(eapiKey, {
 export const encodeParams = async (
   url: string,
   data: string | Record<string, unknown>
-) => {
+): Promise<string> => {
   const text = typeof data === "object" ? JSON.stringify(data) : data;
   const message = `nobody${url}use${text}md5forencrypt`;
 
@@ -37,7 +37,7 @@ export const decodeParams = async (
   return [slice[0], slice[1]];
 };
 
-export const decodeBody = async (cipherBuffer: Uint8Array) => {
+export const decodeBody = async (cipherBuffer: Uint8Array): Promise<string> => {
   const decode = await aes.decrypt(cipherBuffer);
   return decode.toString();
 };
