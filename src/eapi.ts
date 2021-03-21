@@ -3,7 +3,7 @@ import { createHash } from "https://deno.land/std/hash/mod.ts";
 import { AES } from "https://deno.land/x/god_crypto/aes.ts";
 
 const eapiKey = "e82ckenh8dichen8";
-const iv = "e82ckenh8dichen8";
+const iv = "0102030405060708";
 
 const aes = new AES(eapiKey, {
   mode: "ecb",
