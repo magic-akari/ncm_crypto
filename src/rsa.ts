@@ -3,7 +3,7 @@ import { modPow } from "https://deno.land/x/modpow/modpow.ts";
 export const rsaEncrypt = (
   text: bigint,
   pubKey: bigint,
-  modules: bigint
+  modules: bigint,
 ): Promise<string> => {
   const biRet = modPow(text, pubKey, modules);
 

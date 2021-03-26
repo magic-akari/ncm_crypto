@@ -1,1 +1,1 @@
-export * from './src/weapi.ts'
+export * from "./src/weapi.ts";
