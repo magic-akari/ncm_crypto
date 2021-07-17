@@ -1,6 +1,6 @@
-import { decodeString } from "https://deno.land/std/encoding/hex.ts";
-import { createHash } from "https://deno.land/std/hash/mod.ts";
-import { AES } from "https://deno.land/x/god_crypto/aes.ts";
+import { decode } from "https://deno.land/std@0.101.0/encoding/hex.ts";
+import { createHash } from "https://deno.land/std@0.101.0/hash/mod.ts";
+import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
 
 const eapiKey = "e82ckenh8dichen8";
 const iv = "0102030405060708";
@@ -29,7 +29,9 @@ export const encodeParams = async (
 export const decodeParams = async (
   data: string | Uint8Array,
 ): Promise<[string, string]> => {
-  const buffer = typeof data === "string" ? decodeString(data) : data;
+  const buffer = typeof data === "string"
+    ? decode(new TextEncoder().encode(data))
+    : data;
 
   const text = await decodeBody(buffer);
 

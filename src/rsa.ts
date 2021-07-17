@@ -1,4 +1,4 @@
-import { modPow } from "https://deno.land/x/modpow/modpow.ts";
+import { modPow } from "https://deno.land/x/modpow@v0.1.1/modpow.ts";
 
 export const rsaEncrypt = (
   text: bigint,

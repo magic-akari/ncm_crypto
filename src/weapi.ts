@@ -1,6 +1,6 @@
-import { encodeToString } from "https://deno.land/std/encoding/hex.ts";
-import { randomBytes } from "https://deno.land/std/node/crypto.ts";
-import { AES } from "https://deno.land/x/god_crypto/aes.ts";
+import { encode } from "https://deno.land/std@0.101.0/encoding/hex.ts";
+import { randomBytes } from "https://deno.land/std@0.101.0/node/crypto.ts";
+import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
 import { rsaEncrypt } from "./rsa.ts";
 
 const aesKey = "0CoJUm6Qyw8W8jud";
@@ -43,7 +43,7 @@ export const weapi = async (
   const params = paramsBin.base64();
 
   const reverseSecretKeyHex = BigInt(
-    "0x" + encodeToString(secretKey.reverse()),
+    "0x" + new TextDecoder().decode(encode(secretKey.reverse())),
   );
 
   const encSecKey = await rsaEncrypt(reverseSecretKeyHex, pubKey, modulus);
