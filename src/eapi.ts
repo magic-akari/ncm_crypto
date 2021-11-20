@@ -1,5 +1,5 @@
-import { decode } from "https://deno.land/std@0.101.0/encoding/hex.ts";
-import { createHash } from "https://deno.land/std@0.101.0/hash/mod.ts";
+import { decode } from "https://deno.land/std@0.115.1/encoding/hex.ts";
+import { createHash } from "https://deno.land/std@0.115.1/hash/mod.ts";
 import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
 
 const eapiKey = "e82ckenh8dichen8";

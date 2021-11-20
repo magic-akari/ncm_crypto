@@ -1,5 +1,5 @@
-import { encode } from "https://deno.land/std@0.101.0/encoding/hex.ts";
-import { randomBytes } from "https://deno.land/std@0.101.0/node/crypto.ts";
+import { encode } from "https://deno.land/std@0.115.1/encoding/hex.ts";
+import { randomBytes } from "https://deno.land/std@0.115.1/node/crypto.ts";
 import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
 import { rsaEncrypt } from "./rsa.ts";
 
