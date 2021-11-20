@@ -7,7 +7,7 @@ const aesKey = "0CoJUm6Qyw8W8jud";
 const iv = "0102030405060708";
 
 const aes = new AES(aesKey, {
-  mode: "cbc",
+  // mode: "cbc",
   iv,
 });
 
@@ -36,7 +36,7 @@ export const weapi = async (
   const secretKey = randomBytes(16).map((n) => base62[n % 62]);
 
   const paramsBin = await new AES(secretKey, {
-    mode: "cbc",
+    // mode: "cbc",
     iv,
   }).encrypt(encodedBin);
 
