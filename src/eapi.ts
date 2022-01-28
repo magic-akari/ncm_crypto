@@ -1,5 +1,5 @@
-import { decode } from "https://deno.land/std@0.115.1/encoding/hex.ts";
-import { createHash } from "https://deno.land/std@0.115.1/hash/mod.ts";
+import { crypto } from "https://deno.land/std@0.123.0/crypto/mod.ts";
+import * as hex from "https://deno.land/std@0.123.0/encoding/hex.ts";
 import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
 
 const eapiKey = "e82ckenh8dichen8";
@@ -17,7 +17,12 @@ export const encodeParams = async (
   const text = typeof data === "object" ? JSON.stringify(data) : data;
   const message = `nobody${url}use${text}md5forencrypt`;
 
-  const digest = createHash("md5").update(message).toString("hex");
+  const digest = await crypto.subtle
+    .digest("MD5", new TextEncoder().encode(message))
+    .then((buffer) => {
+      const view = new Uint8Array(buffer);
+      return new TextDecoder().decode(hex.encode(view));
+    });
 
   const input = `${url}-36cd479b6b5-${text}-36cd479b6b5-${digest}`;
 
@@ -30,7 +35,7 @@ export const decodeParams = async (
   data: string | Uint8Array,
 ): Promise<[string, string]> => {
   const buffer = typeof data === "string"
-    ? decode(new TextEncoder().encode(data))
+    ? hex.decode(new TextEncoder().encode(data))
     : data;
 
   const text = await decodeBody(buffer);
