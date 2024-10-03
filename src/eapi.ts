@@ -1,50 +1,40 @@
-import { crypto } from "https://deno.land/std@0.123.0/crypto/mod.ts";
-import * as hex from "https://deno.land/std@0.123.0/encoding/hex.ts";
-import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
+import * as hex from "jsr:@std/encoding/hex";
+import { Buffer } from "node:buffer";
+import crypto from "node:crypto";
 
 const eapiKey = "e82ckenh8dichen8";
 const iv = "0102030405060708";
 
-const aes = new AES(eapiKey, {
-  mode: "ecb",
-  iv,
-});
+export function encodeParams(
+	url: string,
+	data: string | Record<string, unknown>,
+): string {
+	const text = typeof data === "object" ? JSON.stringify(data) : data;
+	const message = `nobody${url}use${text}md5forencrypt`;
 
-export const encodeParams = async (
-  url: string,
-  data: string | Record<string, unknown>,
-): Promise<string> => {
-  const text = typeof data === "object" ? JSON.stringify(data) : data;
-  const message = `nobody${url}use${text}md5forencrypt`;
+	const digest = crypto.createHash("md5").update(message).digest("hex");
 
-  const digest = await crypto.subtle
-    .digest("MD5", new TextEncoder().encode(message))
-    .then((buffer) => {
-      const view = new Uint8Array(buffer);
-      return new TextDecoder().decode(hex.encode(view));
-    });
+	const input = `${url}-36cd479b6b5-${text}-36cd479b6b5-${digest}`;
 
-  const input = `${url}-36cd479b6b5-${text}-36cd479b6b5-${digest}`;
+	const cipher = crypto.createCipheriv("aes-128-ecb", eapiKey, iv);
+	return Buffer.concat([cipher.update(input), cipher.final()])
+		.toString("hex")
+		.toUpperCase();
+}
 
-  const cipher = await aes.encrypt(input);
+export function decodeParams(data: string | Uint8Array): [string, string] {
+	const buffer = typeof data === "string" ? hex.decodeHex(data) : data;
 
-  return cipher.hex().toUpperCase();
-};
+	const text = decodeBody(buffer);
 
-export const decodeParams = async (
-  data: string | Uint8Array,
-): Promise<[string, string]> => {
-  const buffer = typeof data === "string"
-    ? hex.decode(new TextEncoder().encode(data))
-    : data;
+	const slice = text.split("-36cd479b6b5-");
+	return [slice[0], slice[1]];
+}
 
-  const text = await decodeBody(buffer);
-
-  const slice = text.split("-36cd479b6b5-");
-  return [slice[0], slice[1]];
-};
-
-export const decodeBody = async (cipherBuffer: Uint8Array): Promise<string> => {
-  const decode = await aes.decrypt(cipherBuffer);
-  return decode.toString();
-};
+export function decodeBody(cipherBuffer: Uint8Array): string {
+	const cipher = crypto.createDecipheriv("aes-128-ecb", eapiKey, iv);
+	return Buffer.concat([
+		cipher.update(cipherBuffer),
+		cipher.final(),
+	]).toString("utf-8");
+}

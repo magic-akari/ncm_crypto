@@ -1,24 +1,19 @@
-import { encode } from "https://deno.land/std@0.123.0/encoding/hex.ts";
-import { randomBytes } from "https://deno.land/std@0.123.0/node/crypto.ts";
-import { AES } from "https://deno.land/x/god_crypto@v1.4.10/aes.ts";
+import { encodeHex } from "jsr:@std/encoding/hex";
+import { Buffer } from "node:buffer";
+import crypto from "node:crypto";
 import { rsaEncrypt } from "./rsa.ts";
 
 const aesKey = "0CoJUm6Qyw8W8jud";
 const iv = "0102030405060708";
 
-const aes = new AES(aesKey, {
-  // mode: "cbc",
-  iv,
-});
-
 const base62 = new TextEncoder().encode(
-  "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+	"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
 );
 
-const pubKey = BigInt("0x010001");
+const pubKey = 65537n;
 
 const modulus = BigInt(
-"0x\
+	"0x\
 00e0b509f6259df8642dbc35662901477df22677ec152b5ff68ace615bb7b725\
 152b3ab17a876aea8a5aa76d2e417629ec4ee341f56135fccf695280104e0312\
 ecbda92557c93870114af6c9d05c4f7f0c3685b7a46bee255932575cce10b424\
@@ -26,32 +21,34 @@ d813cfe4875d3e82047b97ddef52741d546b8e289dc6935b3ece0462db0a22b8\
 e7",
 );
 
-export const weapi = async (
-  data: Record<string, unknown>,
-): Promise<{
-  params: string;
-  encSecKey: string;
-}> => {
-  const text = JSON.stringify(data);
+export function weapi(data: Record<string, unknown>): {
+	params: string;
+	encSecKey: string;
+} {
+	const text = JSON.stringify(data);
 
-  const encodedBin = new TextEncoder().encode(
-    (await aes.encrypt(text)).base64(),
-  );
+	const secretKey = crypto.randomBytes(16).map((n) => base62[n % 62]);
 
-  const secretKey = randomBytes(16).map((n) => base62[n % 62]);
+	const params = aes_cbc_encrypt(
+		aes_cbc_encrypt(Buffer.from(text), aesKey, iv).toString("base64"),
+		secretKey,
+		iv,
+	).toString("base64");
 
-  const paramsBin = await new AES(secretKey, {
-    // mode: "cbc",
-    iv,
-  }).encrypt(encodedBin);
+	const reverseSecretKeyHex = BigInt(
+		"0x" + encodeHex(secretKey.toReversed()),
+	);
 
-  const params = paramsBin.base64();
+	const encSecKey = rsaEncrypt(reverseSecretKeyHex, pubKey, modulus);
 
-  const reverseSecretKeyHex = BigInt(
-    "0x" + new TextDecoder().decode(encode(secretKey.reverse())),
-  );
+	return { params, encSecKey };
+}
 
-  const encSecKey = await rsaEncrypt(reverseSecretKeyHex, pubKey, modulus);
-
-  return { params, encSecKey };
-};
+function aes_cbc_encrypt(
+	buffer: crypto.BinaryLike,
+	key: crypto.CipherKey,
+	iv: string,
+) {
+	const cipher = crypto.createCipheriv("aes-128-cbc", key, iv);
+	return Buffer.concat([cipher.update(buffer), cipher.final()]);
+}
